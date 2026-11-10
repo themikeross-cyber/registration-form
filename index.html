@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Event Registration</title>
+  <style>
+    :root {
+      --bg: #0F0D0E;
+      --text: #F9F4DA;
+      --amber: #FCBA28;
+      --green: #0BA95B;
+      --pink: #F38BA3;
+      --line: rgba(249, 244, 218, 0.16);
+      --field: #191617;
+      --muted: rgba(249, 244, 218, 0.72);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(ellipse 70% 45% at 50% -8%, rgba(252, 186, 40, 0.18), transparent 60%),
+        var(--bg);
+      color: var(--text);
+      font-family: "Segoe UI", "Avenir Next", "Trebuchet MS", sans-serif;
+      line-height: 1.5;
+    }
+
+    main {
+      width: min(40rem, calc(100% - 2rem));
+      margin: 0 auto;
+      padding: 3.25rem 0 4.5rem;
+    }
+
+    .kicker {
+      margin: 0;
+      color: var(--amber);
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0.4rem 0 0.7rem;
+      font-family: Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+      font-size: clamp(2.5rem, 7vw, 3.75rem);
+      font-weight: 500;
+      letter-spacing: -0.03em;
+      line-height: 0.95;
+    }
+
+    .lede {
+      max-width: 34rem;
+      margin: 0 0 1.75rem;
+      color: var(--muted);
+    }
+
+    form,
+    .confirmation {
+      background: rgba(249, 244, 218, 0.035);
+      border: 1px solid var(--line);
+      border-radius: 1.15rem;
+      padding: 1.15rem;
+    }
+
+    form {
+      display: grid;
+      gap: 1rem;
+    }
+
+    .row {
+      display: grid;
+      gap: 1rem;
+    }
+
+    label {
+      display: flex;
+      justify-content: space-between;
+      gap: 0.75rem;
+      margin-bottom: 0.4rem;
+      font-size: 0.88rem;
+      font-weight: 650;
+    }
+
+    .optional {
+      color: var(--muted);
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+
+    input,
+    textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 0.7rem;
+      background: var(--field);
+      color: var(--text);
+      font: inherit;
+      font-size: 1rem;
+      padding: 0.78rem 0.85rem;
+      transition: border-color 0.15s ease;
+    }
+
+    textarea {
+      min-height: 7rem;
+      resize: vertical;
+    }
+
+    input[type="date"] {
+      color-scheme: dark;
+    }
+
+    input::placeholder,
+    textarea::placeholder {
+      color: rgba(249, 244, 218, 0.38);
+    }
+
+    input:focus,
+    textarea:focus {
+      outline: 2px solid var(--amber);
+      outline-offset: 2px;
+      border-color: var(--amber);
+    }
+
+    .field.is-valid input,
+    .field.is-valid textarea {
+      border-color: var(--green);
+    }
+
+    .field.is-invalid input,
+    .field.is-invalid textarea {
+      border-color: var(--pink);
+    }
+
+    .error {
+      min-height: 1.15rem;
+      margin: 0.35rem 0 0;
+      color: var(--pink);
+      font-size: 0.82rem;
+    }
+
+    .hint {
+      margin: 0.35rem 0 0;
+      color: var(--muted);
+      font-size: 0.78rem;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-top: 0.25rem;
+    }
+
+    button {
+      border: 0;
+      border-radius: 999px;
+      background: var(--amber);
+      color: var(--bg);
+      cursor: pointer;
+      font: inherit;
+      font-size: 1rem;
+      font-weight: 750;
+      letter-spacing: 0.01em;
+      padding: 0.9rem 1.25rem;
+    }
+
+    .actions button {
+      flex: 1 1 9rem;
+    }
+
+    button.secondary {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--amber);
+    }
+
+    button:hover {
+      filter: brightness(1.06);
+    }
+
+    button.secondary:hover {
+      background: rgba(252, 186, 40, 0.12);
+      filter: none;
+    }
+
+    button:focus-visible {
+      outline: 2px solid var(--text);
+      outline-offset: 3px;
+    }
+
+    button:disabled {
+      cursor: wait;
+      opacity: 0.65;
+    }
+
+    .confirmation {
+      margin-top: 1.25rem;
+      border-color: rgba(11, 169, 91, 0.7);
+      box-shadow: inset 0 3px 0 var(--green);
+    }
+
+    .confirmation.is-shown {
+      animation: slide-in 0.45s ease;
+    }
+
+    .confirmation .secondary {
+      margin-top: 1.15rem;
+    }
+
+    @keyframes slide-in {
+      from {
+        opacity: 0;
+        transform: translateY(1.5rem);
+      }
+
+      to {
+        opacity: 1;
+        transform: none;
+      }
+    }
+
+    .confirmation h2 {
+      margin: 0.25rem 0 1rem;
+      font-family: Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+      font-size: clamp(1.7rem, 4vw, 2.15rem);
+      font-weight: 500;
+    }
+
+    dl {
+      display: grid;
+      gap: 0.85rem;
+      margin: 0;
+    }
+
+    dt {
+      color: var(--amber);
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    dd {
+      margin: 0.15rem 0 0;
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
+    }
+
+    .send-status {
+      margin: 1.1rem 0 0;
+      font-size: 0.92rem;
+    }
+
+    .send-status.is-ok {
+      color: var(--green);
+    }
+
+    .send-status.is-error {
+      color: var(--pink);
+    }
+
+    .saved {
+      margin-top: 1.75rem;
+    }
+
+    .saved h2 {
+      margin: 0 0 0.85rem;
+      font-family: Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+      font-size: clamp(1.5rem, 4vw, 1.9rem);
+      font-weight: 500;
+    }
+
+    .saved ul {
+      display: grid;
+      gap: 0.75rem;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .saved li {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem 1rem;
+      border: 1px solid var(--line);
+      border-radius: 0.9rem;
+      background: rgba(249, 244, 218, 0.035);
+      padding: 0.9rem 1rem;
+    }
+
+    .saved-name {
+      margin: 0;
+      font-weight: 700;
+    }
+
+    .saved-meta {
+      margin: 0.2rem 0 0;
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+
+    .saved-empty {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .saved button {
+      padding: 0.5rem 0.95rem;
+      font-size: 0.88rem;
+    }
+
+    @media (min-width: 640px) {
+      form,
+      .confirmation {
+        padding: 1.6rem;
+      }
+
+      .row {
+        grid-template-columns: 1.4fr 0.8fr;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .confirmation.is-shown {
+        animation: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <p class="kicker">Save your seat</p>
+    <h1>Event registration</h1>
+    <p class="lede">Tell us who is coming. Required fields are marked, and you will see a confirmation here once the form checks out.</p>
+
+    <form id="registration" action="https://formspree.io/f/xwloepeq" method="POST" novalidate>
+      <div class="field">
+        <label for="full-name">Full name</label>
+        <input id="full-name" name="full_name" type="text" autocomplete="name" minlength="2" required aria-describedby="name-error">
+        <p id="name-error" class="error" aria-live="polite"></p>
+      </div>
+
+      <div class="field">
+        <label for="email">Email</label>
+        <input id="email" name="email" type="email" autocomplete="email" required aria-describedby="email-error">
+        <p id="email-error" class="error" aria-live="polite"></p>
+      </div>
+
+      <div class="row">
+        <div class="field">
+          <label for="event-date">Event date</label>
+          <input id="event-date" name="event_date" type="date" required aria-describedby="date-error">
+          <p id="date-error" class="error" aria-live="polite"></p>
+        </div>
+
+        <div class="field">
+          <label for="guests">Number of guests</label>
+          <input id="guests" name="guests" type="number" min="1" max="10" step="1" inputmode="numeric" required aria-describedby="guests-error guests-hint">
+          <p id="guests-hint" class="hint">A whole number from 1 to 10.</p>
+          <p id="guests-error" class="error" aria-live="polite"></p>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="dietary">Dietary restrictions <span class="optional">Optional</span></label>
+        <textarea id="dietary" name="dietary_restrictions" rows="4" maxlength="500" placeholder="Allergies, vegetarian, none"></textarea>
+      </div>
+
+      <div class="actions">
+        <button type="submit">Register</button>
+        <button type="button" id="clear-form" class="secondary">Reset</button>
+      </div>
+    </form>
+
+    <section id="confirmation" class="confirmation" hidden aria-live="polite">
+      <p class="kicker">Registration received</p>
+      <h2>You're on the list.</h2>
+      <dl>
+        <div>
+          <dt>Name</dt>
+          <dd id="confirm-name"></dd>
+        </div>
+        <div>
+          <dt>Email</dt>
+          <dd id="confirm-email"></dd>
+        </div>
+        <div>
+          <dt>Event date</dt>
+          <dd id="confirm-date"></dd>
+        </div>
+        <div>
+          <dt>Guests</dt>
+          <dd id="confirm-guests"></dd>
+        </div>
+        <div>
+          <dt>Dietary restrictions</dt>
+          <dd id="confirm-dietary"></dd>
+        </div>
+      </dl>
+      <p id="send-status" class="send-status"></p>
+      <button type="button" id="register-another" class="secondary">Register another</button>
+    </section>
+
+    <section class="saved" aria-labelledby="saved-heading">
+      <h2 id="saved-heading">Saved registrations</h2>
+      <div id="saved-list"></div>
+    </section>
+  </main>
+
+  <script>
+    const form = document.querySelector("#registration");
+    const confirmation = document.querySelector("#confirmation");
+    const submitButton = form.querySelector('button[type="submit"]');
+    const sendStatus = document.querySelector("#send-status");
+
+    const nameInput = document.querySelector("#full-name");
+    const emailInput = document.querySelector("#email");
+    const dateInput = document.querySelector("#event-date");
+    const guestsInput = document.querySelector("#guests");
+    const dietaryInput = document.querySelector("#dietary");
+
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+    let submission = 0;
+
+    const today = new Date();
+    const month = String(today.getMonth() + 1).padStart(2, "0");
+    const day = String(today.getDate()).padStart(2, "0");
+    dateInput.min = `${today.getFullYear()}-${month}-${day}`;
+
+    function setState(input, message) {
+      const field = input.closest(".field");
+      const error = field.querySelector(".error");
+      const invalid = Boolean(message);
+
+      field.classList.toggle("is-invalid", invalid);
+      field.classList.toggle("is-valid", !invalid);
+      input.setAttribute("aria-invalid", invalid ? "true" : "false");
+      if (error) error.textContent = message;
+      return !invalid;
+    }
+
+    function validateName() {
+      const value = nameInput.value.trim();
+      if (!value) return setState(nameInput, "Enter your full name.");
+      if (value.length < 2) return setState(nameInput, "Name must be at least 2 characters.");
+      return setState(nameInput, "");
+    }
+
+    function validateEmail() {
+      const value = emailInput.value.trim();
+      if (!value) return setState(emailInput, "Enter your email address.");
+      if (!emailPattern.test(value)) return setState(emailInput, "Enter a valid email address, like name@example.com.");
+      return setState(emailInput, "");
+    }
+
+    function validateDate() {
+      const value = dateInput.value;
+      if (!value) return setState(dateInput, "Choose an event date.");
+
+      const [year, monthValue, dayValue] = value.split("-").map(Number);
+      const chosen = new Date(year, monthValue - 1, dayValue);
+      const startOfToday = new Date();
+      startOfToday.setHours(0, 0, 0, 0);
+
+      if (
+        chosen.getFullYear() !== year ||
+        chosen.getMonth() !== monthValue - 1 ||
+        chosen.getDate() !== dayValue
+      ) {
+        return setState(dateInput, "Choose a valid date.");
+      }
+
+      if (chosen < startOfToday) return setState(dateInput, "Choose today or a later date.");
+      return setState(dateInput, "");
+    }
+
+    function validateGuests() {
+      const value = guestsInput.value.trim();
+      if (!value) return setState(guestsInput, "Enter the number of guests.");
+
+      const count = Number(value);
+      if (!Number.isInteger(count) || count < 1 || count > 10) {
+        return setState(guestsInput, "Guests must be a whole number from 1 to 10.");
+      }
+
+      return setState(guestsInput, "");
+    }
+
+    const checks = [
+      [nameInput, validateName],
+      [emailInput, validateEmail],
+      [dateInput, validateDate],
+      [guestsInput, validateGuests]
+    ];
+
+    checks.forEach(([input, validate]) => {
+      const validateLive = () => {
+        input.dataset.touched = "true";
+        validate();
+      };
+
+      input.addEventListener("input", validateLive);
+      input.addEventListener("change", validateLive);
+    });
+
+    function clearFieldState(input) {
+      const field = input.closest(".field");
+      field.classList.remove("is-valid", "is-invalid");
+      input.removeAttribute("aria-invalid");
+      delete input.dataset.touched;
+      const error = field.querySelector(".error");
+      if (error) error.textContent = "";
+    }
+
+    function resetForm() {
+      submission += 1;
+      form.reset();
+      checks.forEach(([input]) => clearFieldState(input));
+      confirmation.classList.remove("is-shown");
+      confirmation.hidden = true;
+      sendStatus.textContent = "";
+      sendStatus.className = "send-status";
+      submitButton.disabled = false;
+      submitButton.textContent = "Register";
+      nameInput.focus();
+    }
+
+    document.querySelector("#clear-form").addEventListener("click", resetForm);
+    document.querySelector("#register-another").addEventListener("click", () => {
+      resetForm();
+      form.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+
+    function formatDate(value) {
+      const [year, monthValue, dayValue] = value.split("-").map(Number);
+      return new Date(year, monthValue - 1, dayValue).toLocaleDateString(undefined, {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric"
+      });
+    }
+
+    function loadRegistrations() {
+      try {
+        const saved = JSON.parse(localStorage.getItem("registrations"));
+        return Array.isArray(saved) ? saved : [];
+      } catch (error) {
+        return [];
+      }
+    }
+
+    function renderRegistrations() {
+      const savedList = document.querySelector("#saved-list");
+      const entries = loadRegistrations();
+      savedList.replaceChildren();
+
+      if (!entries.length) {
+        const empty = document.createElement("p");
+        empty.className = "saved-empty";
+        empty.textContent = "No registrations yet";
+        savedList.append(empty);
+        return;
+      }
+
+      const list = document.createElement("ul");
+      entries.forEach((entry) => {
+        const item = document.createElement("li");
+        const details = document.createElement("div");
+        const name = document.createElement("p");
+        const meta = document.createElement("p");
+        const remove = document.createElement("button");
+
+        name.className = "saved-name";
+        name.textContent = entry.name;
+        meta.className = "saved-meta";
+        meta.textContent = `${entry.email} · ${formatDate(entry.date)} · ${entry.guests} ${entry.guests === 1 ? "guest" : "guests"}`;
+
+        remove.type = "button";
+        remove.className = "secondary";
+        remove.textContent = "Delete";
+        remove.addEventListener("click", () => {
+          const remaining = loadRegistrations().filter((item) => item.id !== entry.id);
+          localStorage.setItem("registrations", JSON.stringify(remaining));
+          renderRegistrations();
+        });
+
+        details.append(name, meta);
+        item.append(details, remove);
+        list.append(item);
+      });
+
+      savedList.append(list);
+    }
+
+    function saveRegistration() {
+      const entries = loadRegistrations();
+      entries.unshift({
+        id: crypto.randomUUID(),
+        name: nameInput.value.trim(),
+        email: emailInput.value.trim(),
+        date: dateInput.value,
+        guests: Number(guestsInput.value)
+      });
+      localStorage.setItem("registrations", JSON.stringify(entries));
+      renderRegistrations();
+    }
+
+    renderRegistrations();
+
+    function showConfirmation() {
+      document.querySelector("#confirm-name").textContent = nameInput.value.trim();
+      document.querySelector("#confirm-email").textContent = emailInput.value.trim();
+      document.querySelector("#confirm-date").textContent = formatDate(dateInput.value);
+      document.querySelector("#confirm-guests").textContent = String(Number(guestsInput.value));
+      document.querySelector("#confirm-dietary").textContent = dietaryInput.value.trim() || "None";
+      sendStatus.textContent = "Sending your registration…";
+      sendStatus.className = "send-status";
+      confirmation.hidden = false;
+      confirmation.classList.remove("is-shown");
+      void confirmation.offsetWidth;
+      confirmation.classList.add("is-shown");
+    }
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const id = ++submission;
+
+      const results = checks.map(([, validate]) => validate());
+      if (results.some((valid) => !valid)) {
+        confirmation.classList.remove("is-shown");
+        confirmation.hidden = true;
+        const firstInvalid = form.querySelector("[aria-invalid='true']");
+        if (firstInvalid) firstInvalid.focus();
+        return;
+      }
+
+      showConfirmation();
+      saveRegistration();
+      submitButton.disabled = true;
+      submitButton.textContent = "Registering…";
+
+      try {
+        const response = await fetch(form.action, {
+          method: "POST",
+          body: new FormData(form),
+          headers: { Accept: "application/json" }
+        });
+        const data = await response.json().catch(() => ({}));
+
+        if (id !== submission) return;
+
+        if (!response.ok) {
+          const message = data.error || (Array.isArray(data.errors) && data.errors.map((item) => item.message).filter(Boolean).join(" "));
+          throw new Error(message || "The registration could not be sent.");
+        }
+
+        sendStatus.textContent = "Sent. A copy is on its way to the registration inbox.";
+        sendStatus.className = "send-status is-ok";
+        confirmation.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      } catch (error) {
+        if (id !== submission) return;
+        sendStatus.textContent = error.message || "The registration could not be sent. Your details are still shown above.";
+        sendStatus.className = "send-status is-error";
+      }
+
+      if (id !== submission) return;
+      submitButton.disabled = false;
+      submitButton.textContent = "Register";
+    });
+  </script>
+</body>
+</html>
